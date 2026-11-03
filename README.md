@@ -23,3 +23,7 @@ When I created a new IAM user to test custom permissions, the initial creation f
 - **Access Management:** Created IAM user groups and assigned specific managed policies for efficient permission control.
 - **AWS Account Customization:** Generated a custom account alias to provide a user-friendly console sign-in URL.
 - **User Troubleshooting:** Fixed invalid user name formatting errors during IAM user creation to successfully generate console access and credentials.
+
+- * ## 🎓 NextWork Verification
+* **Project Badge/Certificate:** [https://nextwork.ai/hemaa/docs/51a5fd24-7458-58a6-8653-9b90119a0e4a)
+
