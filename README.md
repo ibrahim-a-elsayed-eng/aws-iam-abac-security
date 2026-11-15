@@ -1,3 +1,4 @@
+<img width="2760" height="1504" alt="Gemini_Generated_Image_9ea40f9ea40f9ea4" src="https://github.com/user-attachments/assets/5e1eb51a-6c4f-4213-a12f-cbd520e1f92d" />
 
 
 # 🛡️ AWS IAM Cloud Security &amp; ABAC Access Control
