@@ -1,24 +1,62 @@
-<img width="2760" height="1504" alt="Gemini_Generated_Image_9ea40f9ea40f9ea4" src="https://github.com/user-attachments/assets/5e1eb51a-6c4f-4213-a12f-cbd520e1f92d" />
+<div align="center">
 
+<img width="2760" height="1504" alt="AWS IAM ABAC Banner" src="https://github.com/user-attachments/assets/5e1eb51a-6c4f-4213-a12f-cbd520e1f92d" />
 
-# 🛡️ AWS IAM Cloud Security &amp; ABAC Access Control
+# AWS IAM Cloud Security & ABAC Access Control
 
-## 📌 Project Overview
-This project demonstrates how to implement **Attribute-Based Access Control (ABAC)** and the **Principle of Least Privilege** using AWS IAM and Resource Tagging. As a Cloud/DevOps Engineer, I configured fine-grained security policies to grant a new intern full control over development resources while protecting critical production infrastructure from unauthorized actions.
+![AWS](https://img.shields.io/badge/AWS-IAM%20%7C%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![Policy](https://img.shields.io/badge/Access%20Control-ABAC%20JSON-0EA5E9?style=for-the-badge)
+![Security](https://img.shields.io/badge/Security-Least%20Privilege-10B981?style=for-the-badge)
+![Cost](https://img.shields.io/badge/Lab%20Cost-%240%20Free%20Tier-0F172A?style=for-the-badge)
 
----
+**Attribute-Based Access Control (ABAC) in AWS IAM granting full EC2 control on `Env: development` resources while protecting `Env: production` instances.**
 
-## 🏛️ Architecture &amp; Key Components
-* **Amazon EC2**: Deployed two virtual servers labeled with environment tags (`Env: development` and `Env: production`).
-* **AWS IAM Policy**: Authored a custom JSON access policy utilizing conditional statements (`ec2:ResourceTag/Env`).
-* **IAM User Group**: Created `nextwork-dev-group` to enable scalable, group-based permission management.
-* **IAM User**: Onboarded `nextwork-dev-ibrahim-ahmed` and assigned them to the group.
-* **AWS Account Alias**: Configured a customized sign-in URL for streamlined identity management.
-* **IAM Policy Simulator**: Tested permission boundaries in a non-disruptive sandbox environment.
+</div>
 
 ---
 
-## ⚙️ Custom JSON Policy (`NextWorkDevEnvironmentPolicy`)
+## 1. Architecture Overview
+
+```mermaid
+flowchart LR
+    User["IAM User: nextwork-dev-ibrahim-ahmed\n(Incognito / Account Alias Login)"] --> Group["IAM Group: nextwork-dev-group"]
+    Group --> Policy["Custom Policy: NextWorkDevEnvironmentPolicy"]
+    Policy -->|Allow ec2:* where Env=development| Dev["EC2: nextwork-dev\nTag: Env = development"]
+    Policy -.->|Implicit Deny StopInstances| Prod["EC2: nextwork-prod\nTag: Env = production"]
+    Policy -.->|Explicit Deny CreateTags / DeleteTags| Tags["Tag Modification Blocked"]
+```
+
+> [!IMPORTANT]
+> **Key Design Decision:** Separating permissions by resource tags (`ec2:ResourceTag/Env = development`) and explicitly denying `ec2:CreateTags` and `ec2:DeleteTags` prevents privilege escalation where a user could re-tag a production server as `development`.
+
+---
+
+## 2. Problem & Solution
+
+| Aspect | Detail |
+| :--- | :--- |
+| **Problem** | Granting broad `ec2:*` permissions to a developer or intern risks accidental or unauthorized changes to production EC2 instances. |
+| **Solution** | Created `NextWorkDevEnvironmentPolicy` using tag-based IAM conditions (`ec2:ResourceTag/Env`) attached to `nextwork-dev-group` and user `nextwork-dev-ibrahim-ahmed`. |
+| **Security Boundary** | `ec2:*` is allowed only on `Env: development`; `ec2:Describe*` is read-only across instances; `ec2:CreateTags` and `ec2:DeleteTags` are explicitly denied. |
+
+---
+
+## 3. Tech Stack
+- **Cloud:** Amazon Web Services (AWS IAM, Amazon EC2, IAM Policy Simulator)
+- **Access Control:** Custom IAM JSON Policy (`NextWorkDevEnvironmentPolicy`), ABAC Resource Tagging (`Env: development` / `Env: production`)
+- **Identity Management:** IAM User Group (`nextwork-dev-group`), IAM User (`nextwork-dev-ibrahim-ahmed`), AWS Account Alias
+
+---
+
+## 4. Implementation Steps (Summary)
+1. Launched two Amazon EC2 instances tagged `Env: development` (`nextwork-dev`) and `Env: production` (`nextwork-prod`).
+2. Authored the custom JSON policy `NextWorkDevEnvironmentPolicy` using `ec2:ResourceTag/Env` conditions and explicit tag-modification `Deny` rules.
+3. Created IAM User Group `nextwork-dev-group`, attached `NextWorkDevEnvironmentPolicy`, and onboarded IAM User `nextwork-dev-ibrahim-ahmed` into the group.
+4. Configured an AWS Account Alias for sign-in and validated boundaries with both the IAM Policy Simulator and a live Incognito session.
+5. Cleaned up lab resources by terminating `nextwork-dev` & `nextwork-prod` and deleting the test IAM group and user.
+
+<details>
+<summary><b>Click to expand Custom JSON Policy (NextWorkDevEnvironmentPolicy)</b></summary>
 
 ```json
 {
@@ -49,32 +87,23 @@ This project demonstrates how to implement **Attribute-Based Access Control (ABA
         }
     ]
 }
-
 ```
 
----
-
-## 🧪 Security Validation &amp; Testing
-
-### 1\. Live Access Testing (Incognito Session)
-
-* **Development Server (** **nextwork-dev** **)**: Successfully stopped the instance (`Stopping` state).
-* **Production Server (** **nextwork-prod** **)**: Attempted to stop the instance ➡️ Triggered explicit **Access Denied** error.
-
-### 2\. IAM Policy Simulator Evaluation
-
-* Simulated `StopInstances` with condition `ec2:ResourceTag/Env = development` ➡️ **Allowed**.
-* Simulated `DeleteTags` ➡️ **Denied** (enforcing tag preservation).
+</details>
 
 ---
 
-## 🧹 Resource Cleanup
+## 5. Verification & Results
+- **Live Access Testing (Incognito Session):**
+  - `nextwork-dev` (`Env: development`): Successfully stopped the instance (`Stopping` state).
+  - `nextwork-prod` (`Env: production`): Attempted to stop the instance → triggered **Access Denied**.
+- **IAM Policy Simulator Evaluation:**
+  - `StopInstances` with `ec2:ResourceTag/Env = development` → **Allowed**.
+  - `DeleteTags` → **Denied** (enforcing tag preservation).
+- **NextWork Project Certificate / Verification:** [View NextWork Project](https://nextwork.ai/hemaa/docs/51a5fd24-7458-58a6-8653-9b90119a0e4a)
 
-To strictly follow AWS Free Tier &amp; Cloud Security best practices:
+---
 
-* Terminated both EC2 instances (`nextwork-dev` &amp; `nextwork-prod`).
-* Cleaned up the test IAM User Group and IAM User.
-
-- * ## 🎓 NextWork Verification
-* **Project Badge/Certificate:** [https://nextwork.ai/hemaa/docs/51a5fd24-7458-58a6-8653-9b90119a0e4a)
-
+## 6. Key Engineering Takeaways
+- **ABAC Scales Cleanly:** Tag-based IAM policies automatically cover newly created `development` instances without rewriting policies per instance ID.
+- **Guard Tag Integrity:** ABAC is only secure when users are explicitly blocked from modifying the tags (`CreateTags` / `DeleteTags`) used in the policy condition.
