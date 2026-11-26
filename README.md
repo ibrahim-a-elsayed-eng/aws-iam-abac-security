@@ -1,7 +1,5 @@
 <div align="center">
 
-<img width="100%" alt="AWS IAM Cloud Security & ABAC Access Control Architecture" src="./images/aws_iam_abac_architecture.jpg" />
-
 # AWS IAM Cloud Security & ABAC Access Control
 
 ![AWS](https://img.shields.io/badge/AWS-IAM%20%7C%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
@@ -16,6 +14,8 @@
 ---
 
 ## 1. Architecture Overview
+
+![Architecture Diagram](./images/aws_iam_abac_architecture.jpg)
 
 ```mermaid
 flowchart LR
@@ -104,6 +104,18 @@ flowchart LR
 
 ---
 
-## 6. Key Engineering Takeaways
+## 6. Troubleshooting & Fixes
+- **Issue:** Without explicit tag-modification denials, a developer with `ec2:*` on `Env: development` could attempt to bypass isolation by modifying instance tags.
+- **Root Cause & Fix:** Added an explicit `Deny` statement for `ec2:CreateTags` and `ec2:DeleteTags` on `Resource: *` and verified both `StopInstances` on `nextwork-prod` (`Implicit Deny`) and `DeleteTags` (`Explicit Deny`) return **Access Denied**.
+
+---
+
+## 7. Cost & Teardown Verification ($0.00)
+- [x] Both test EC2 instances (`nextwork-dev`, `nextwork-prod`) terminated after verification.
+- [x] Temporary IAM User (`nextwork-dev-ibrahim-ahmed`) and IAM Group (`nextwork-dev-group`) deleted (`$0.00` AWS spend).
+
+---
+
+## 8. Key Engineering Takeaways
 - **ABAC Scales Cleanly:** Tag-based IAM policies automatically cover newly created `development` instances without rewriting policies per instance ID.
 - **Guard Tag Integrity:** ABAC is only secure when users are explicitly blocked from modifying the tags (`CreateTags` / `DeleteTags`) used in the policy condition.
